@@ -18,7 +18,7 @@ class Stores(db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     city = db.Column(db.String(120), index=True)
-    name = db.Column(db.String(120), index=True, unique=True)
+    title = db.Column(db.String(120), index=True, unique=True)
     owner = db.Column(db.String(120), index=True)
 
 

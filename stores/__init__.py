@@ -1,7 +1,7 @@
 from flask import Blueprint
 from flask_restful import Api
 
-from stores.resourse import CreateStore
+from stores.resource import CreateStore
 
 stores_bp = Blueprint("stores", __name__)
 api = Api(stores_bp)

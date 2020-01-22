@@ -10,16 +10,17 @@ from parcer import stores_parser
 class CreateStore(Resource):
     @marshal_with(stores_structure)
     def get(self):
-        store_name = stores_parser.parse_args().get('name')
+        store_name = stores_parser.parse_args().get('title')
         if store_name:
-            store = Stores.query.filter_by(name=store_name).first()
+            store = Stores.query.filter_by(title=store_name).first()
             return store, 200
         return Stores.query.all(), 200
 
+    @marshal_with(stores_structure)
     def post(self):
         data = json.loads(request.data)
-        if Stores.query.filter(Stores.name == data.get('name')).first():
-            return "This store name are exist", 400
+        if Stores.query.filter(Stores.title == data.get('title')).first():
+            return "This store title are exist", 400
         store = Stores(**data)
         try:
             db.session.add(store)
