@@ -19,6 +19,7 @@ products_structure = {
 users_structure = {
     "id": fields.Integer,
     "name": fields.String,
-    "email": fields.String
+    "email": fields.String,
+    "role": fields.Integer
 }
 

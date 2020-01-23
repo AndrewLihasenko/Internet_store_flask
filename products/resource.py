@@ -16,10 +16,12 @@ class CreateProducts(Resource):
         min_price = products_parser.parse_args().get('min_price')
         max_price = products_parser.parse_args().get('max_price')
         if product_name:
-            product = Products.query.filter(Products.name.match(product_name)).first()
+            product = Products.query.filter_by(name=product_name).first() or \
+                      Products.query.filter(Products.name.match(product_name)).all()
             return product, 200
         if category_name:
-            product = Products.query.filter(Products.category.match(category_name)).first()
+            product = Products.query.filter_by(category=category_name).all() or \
+                      Products.query.filter(Products.category.match(category_name)).all()
             return product, 200
         if store_name:
             product = Products.query.filter_by(name=store_name).first()
