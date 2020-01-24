@@ -1,12 +1,5 @@
 from flask_restful import fields
 
-stores_structure = {
-    "id": fields.Integer,
-    "city": fields.String,
-    "title": fields.String,
-    "owner": fields.String
-}
-
 products_structure = {
     "id": fields.Integer,
     "name": fields.String,
@@ -15,6 +8,13 @@ products_structure = {
     "description": fields.String
 }
 
+stores_structure = {
+    "id": fields.Integer,
+    "city": fields.String,
+    "title": fields.String,
+    "owner": fields.String,
+    "products": fields.Nested(products_structure)
+}
 
 users_structure = {
     "id": fields.Integer,

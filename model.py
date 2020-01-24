@@ -25,7 +25,7 @@ class Users(db.Model):
     name = db.Column(db.String(64), index=True, unique=True)
     email = db.Column(db.String(120), index=True, unique=True)
     role = db.Column(db.SmallInteger, default=BUYER_ROLE)
-    basket = db.relationship('Products', secondary=stores_products, backref=db.backref('basket_ref'))
+    basket = db.relationship('Products', secondary=basket, backref=db.backref('basket_ref'))
 
 
 class Stores(db.Model):

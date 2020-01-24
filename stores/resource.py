@@ -1,8 +1,9 @@
 from flask import json, request
 from flask_restful import Resource, marshal_with
+from sqlalchemy.orm.exc import FlushError
 
 from db import db
-from marshal_structure import stores_structure
+from marshal_structure import stores_structure, products_structure
 from model import Stores, Products
 from parcer import stores_parser
 
@@ -54,22 +55,24 @@ class CreateStore(Resource):
         return "Sorry. Nothing change.", 400
 
 
-# TODO: need to testing
-class StoresProduct(Resource):
+class StoresProducts(Resource):
     def post(self):
         data = json.loads(request.data)
         store_title = data.get('store_title')
         product_name = data.get('product_name')
         store = Stores.query.filter_by(title=store_title).first()
         product = Products.query.filter_by(name=product_name).first()
-        store.products.append(product)
+        if store and product:
+            store.products.append(product)
+        else:
+            return "Invalid data entered"
         try:
             db.session.commit()
         except (ConnectionError, PermissionError) as err:
             return err, 400
         return f"{product.name} added to {store.title}"
 
-    @marshal_with(stores_structure)
+    @marshal_with(products_structure)
     def get(self):
         args = stores_parser.parse_args(strict=True)
         store = Stores.query.filter_by(title=args.get('title')).first()
@@ -81,7 +84,10 @@ class StoresProduct(Resource):
         product_name = data.get('product_name')
         store = Stores.query.filter_by(title=store_title).first()
         product = Products.query.filter_by(name=product_name).first()
-        store.products.remove(product)
+        if store and product:
+            store.products.remove(product)
+        else:
+            return "Invalid data entered"
         try:
             db.session.commit()
         except (ConnectionError, PermissionError) as err:
