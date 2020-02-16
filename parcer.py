@@ -12,3 +12,5 @@ products_parser.add_argument('max_price')
 
 users_parser = reqparse.RequestParser()
 users_parser.add_argument('name')
+users_parser.add_argument('is_paid')
+

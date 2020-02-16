@@ -1,10 +1,9 @@
 from flask import json, request
 from flask_restful import Resource, marshal_with
-from sqlalchemy.orm.exc import FlushError
 
 from db import db
 from marshal_structure import stores_structure, products_structure
-from model import Stores, Products
+from model import Store, Product
 from parcer import stores_parser
 
 
@@ -13,16 +12,16 @@ class CreateStore(Resource):
     def get(self):
         store_name = stores_parser.parse_args().get('title')
         if store_name:
-            store = Stores.query.filter_by(title=store_name).first()
+            store = Store.query.filter_by(title=store_name).first()
             return store, 200
-        return Stores.query.all(), 200
+        return Store.query.all(), 200
 
     @marshal_with(stores_structure)
     def post(self):
         data = json.loads(request.data)
-        if Stores.query.filter(Stores.title == data.get('title')).first():
+        if Store.query.filter(Store.title == data.get('title')).first():
             return "This store title are exist", 400
-        store = Stores(**data)
+        store = Store(**data)
         try:
             db.session.add(store)
             db.session.commit()
@@ -33,7 +32,7 @@ class CreateStore(Resource):
     @marshal_with(stores_structure)
     def patch(self, store_id):
         data = json.loads(request.data)
-        store = Stores.query.get(store_id)
+        store = Store.query.get(store_id)
         if store:
             store.owner = data.get('owner')
             try:
@@ -44,7 +43,7 @@ class CreateStore(Resource):
         return "Sorry. Nothing change.", 400
 
     def delete(self, store_id):
-        store = Stores.query.get(store_id)
+        store = Store.query.get(store_id)
         if store:
             try:
                 db.session.delete(store)
@@ -60,8 +59,8 @@ class StoresProducts(Resource):
         data = json.loads(request.data)
         store_title = data.get('store_title')
         product_name = data.get('product_name')
-        store = Stores.query.filter_by(title=store_title).first()
-        product = Products.query.filter_by(name=product_name).first()
+        store = Store.query.filter_by(title=store_title).first()
+        product = Product.query.filter_by(name=product_name).first()
         if store and product:
             store.products.append(product)
         else:
@@ -75,15 +74,15 @@ class StoresProducts(Resource):
     @marshal_with(products_structure)
     def get(self):
         args = stores_parser.parse_args(strict=True)
-        store = Stores.query.filter_by(title=args.get('title')).first()
+        store = Store.query.filter_by(title=args.get('title')).first()
         return store.products, 200
 
     def delete(self):
         data = json.loads(request.data)
         store_title = data.get('store_title')
         product_name = data.get('product_name')
-        store = Stores.query.filter_by(title=store_title).first()
-        product = Products.query.filter_by(name=product_name).first()
+        store = Store.query.filter_by(title=store_title).first()
+        product = Product.query.filter_by(name=product_name).first()
         if store and product:
             store.products.remove(product)
         else:
