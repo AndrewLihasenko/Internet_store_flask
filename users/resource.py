@@ -44,6 +44,9 @@ class CreateUser(Resource):
 
 class Order(Resource):
     def post(self):
+        """
+        Add product to basket
+        """
         data = json.loads(request.data)
         user_name = data.get('user_name')
         product_name = data.get('product_name')
@@ -61,6 +64,9 @@ class Order(Resource):
 
     @marshal_with(products_structure)
     def get(self):
+        """
+        Show all orders or paid orders by username
+        """
         args = users_parser.parse_args(strict=True)
         user = User.query.filter_by(name=args.get('name')).first()
         paid_status = users_parser.parse_args().get('is_paid')
@@ -70,36 +76,48 @@ class Order(Resource):
         return user.products, 200
 
     def patch(self, order_id):
+        """
+        Pay order by id
+        """
         data = json.loads(request.data)
         order_products = OrderProduct.query.filter_by(is_paid='False').all()
-        for prod in order_products:
-            if prod.product.id == order_id:
-                prod.is_paid = data.get('is_paid')
-                prod.money = prod.money - prod.product.price
-                try:
-                    db.session.commit()
-                except (ConnectionError, PermissionError) as err:
-                    return err, 400
-                return f"{prod.product.name} was paid", 201
-            return "Payment failed", 400
+        if order_id in [order.id for order in order_products]:
+            for order in order_products:
+                if order.id == order_id:
+                    order.is_paid = data.get('is_paid')
+                    new_money = order.money - order.product.price
+                    OrderProduct.query.filter_by(user_id=order.user.id).update({'money': new_money})
+                    try:
+                        db.session.commit()
+                    except (ConnectionError, PermissionError) as err:
+                        return err, 400
+            return "This product was paid", 201
+        return "Payment is not possible", 400
 
 
 class GetMoney(Resource):
     def patch(self, user_id):
+        """
+        Add user money to wallet if user exist
+        """
         data = json.loads(request.data)
         order_products = OrderProduct.query.all()
-        for prod in order_products:
-            if prod.user.id == user_id:
-                prod.money = data.get('add_money')
-                try:
-                    db.session.commit()
-                except (ConnectionError, PermissionError) as err:
-                    return err, 400
-                return f"{prod.user.name} added {data.get('add_money')}$ to wallet", 201
-            return "Operation failed", 400
-
+        if user_id in [prod.user.id for prod in order_products]:
+            for order in order_products:
+                if order.user.id == user_id:
+                    new_money = order.money + data.get('add_money')
+                    OrderProduct.query.filter_by(user_id=user_id).update({'money': new_money})
+                    try:
+                        db.session.commit()
+                    except (ConnectionError, PermissionError) as err:
+                        return err, 400
+            return f"You added {data.get('add_money')}$ to wallet", 201
+        return "This user does not exist", 404
 
     def get(self):
+        """
+        Show user money by user name
+        """
         args = users_parser.parse_args(strict=True)
         user = User.query.filter_by(name=args.get('name')).first()
         if user:

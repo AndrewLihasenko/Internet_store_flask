@@ -22,7 +22,6 @@ def create_app():
     app.register_blueprint(products_bp)
     app.register_blueprint(users_bp)
 
-
     return app
 
 
